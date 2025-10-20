@@ -5,4 +5,4 @@ parameters:
     level: 8
     reportUnmatchedIgnoredErrors: false
     excludePaths:
-        - '%rootDir%/../../../vendor/spryker/spryker/Bundles/MerchantProductOfferSearch/src/Spryker/Client/MerchantProductOfferSearch/Plugin/Search/MerchantReferenceQueryExpanderPlugin.php'
+        - '%rootDir%/../../../src/Spryker/MerchantProductOfferSearch/src/Spryker/Client/MerchantProductOfferSearch/Plugin/Search/MerchantReferenceQueryExpanderPlugin.php'
