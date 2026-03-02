@@ -12,11 +12,6 @@ use Generated\Shared\Transfer\ProductAbstractMerchantCriteriaTransfer;
 
 interface MerchantProductOfferSearchRepositoryInterface
 {
-    /**
-     * @param \Generated\Shared\Transfer\ProductAbstractMerchantCriteriaTransfer $productAbstractMerchantCriteriaTransfer
-     *
-     * @return \Generated\Shared\Transfer\ProductAbstractMerchantCollectionTransfer
-     */
     public function getProductAbstractMerchantCollection(
         ProductAbstractMerchantCriteriaTransfer $productAbstractMerchantCriteriaTransfer
     ): ProductAbstractMerchantCollectionTransfer;

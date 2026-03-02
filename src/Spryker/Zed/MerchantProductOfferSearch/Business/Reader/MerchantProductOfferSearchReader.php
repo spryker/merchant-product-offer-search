@@ -18,9 +18,6 @@ class MerchantProductOfferSearchReader implements MerchantProductOfferSearchRead
      */
     protected $merchantProductOfferSearchRepository;
 
-    /**
-     * @param \Spryker\Zed\MerchantProductOfferSearch\Persistence\MerchantProductOfferSearchRepositoryInterface $merchantProductOfferSearchRepository
-     */
     public function __construct(MerchantProductOfferSearchRepositoryInterface $merchantProductOfferSearchRepository)
     {
         $this->merchantProductOfferSearchRepository = $merchantProductOfferSearchRepository;

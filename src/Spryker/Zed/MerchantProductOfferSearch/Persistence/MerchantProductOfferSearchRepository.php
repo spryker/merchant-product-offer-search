@@ -178,11 +178,6 @@ class MerchantProductOfferSearchRepository extends AbstractRepository implements
             ->getData();
     }
 
-    /**
-     * @param array $merchantData
-     *
-     * @return array
-     */
     protected function groupMerchantDataByProductAbstractId(array $merchantData): array
     {
         $groupedProductAbstractMerchantData = [];
@@ -201,12 +196,6 @@ class MerchantProductOfferSearchRepository extends AbstractRepository implements
         return $groupedProductAbstractMerchantData;
     }
 
-    /**
-     * @param \Orm\Zed\ProductOffer\Persistence\SpyProductOfferQuery $productOfferQuery
-     * @param \Generated\Shared\Transfer\ProductAbstractMerchantConditionsTransfer $productAbstractMerchantConditionsTransfer
-     *
-     * @return \Orm\Zed\ProductOffer\Persistence\SpyProductOfferQuery
-     */
     protected function applyProductAbstractMerchantFilters(
         SpyProductOfferQuery $productOfferQuery,
         ProductAbstractMerchantConditionsTransfer $productAbstractMerchantConditionsTransfer

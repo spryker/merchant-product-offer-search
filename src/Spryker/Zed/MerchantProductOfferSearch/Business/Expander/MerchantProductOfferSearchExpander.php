@@ -34,10 +34,6 @@ class MerchantProductOfferSearchExpander implements MerchantProductOfferSearchEx
      */
     protected $storeFacade;
 
-    /**
-     * @param \Spryker\Zed\MerchantProductOfferSearch\Dependency\Facade\MerchantProductOfferSearchToMerchantProductOfferFacadeInterface $merchantProductOfferFacade
-     * @param \Spryker\Zed\MerchantProductOfferSearch\Dependency\Facade\MerchantProductOfferSearchToStoreFacadeInterface $storeFacade
-     */
     public function __construct(
         MerchantProductOfferSearchToMerchantProductOfferFacadeInterface $merchantProductOfferFacade,
         MerchantProductOfferSearchToStoreFacadeInterface $storeFacade

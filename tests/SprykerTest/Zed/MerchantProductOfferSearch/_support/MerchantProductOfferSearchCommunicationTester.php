@@ -69,9 +69,6 @@ class MerchantProductOfferSearchCommunicationTester extends Actor
      */
     protected const PRODUCT_OFFER_APPROVAL_STATUS_APPROVED = 'approved';
 
-    /**
-     * @return void
-     */
     public function addDependencies(): void
     {
         $this->addRabbitMqDependency();
@@ -80,19 +77,11 @@ class MerchantProductOfferSearchCommunicationTester extends Actor
         $this->addStoreClientMock();
     }
 
-    /**
-     * @return \Orm\Zed\ProductPageSearch\Persistence\SpyProductAbstractPageSearchQuery
-     */
     public function getProductAbstractPageSearchPropelQuery(): SpyProductAbstractPageSearchQuery
     {
         return SpyProductAbstractPageSearchQuery::create();
     }
 
-    /**
-     * @param \Generated\Shared\Transfer\ProductConcreteTransfer $productConcreteTransfer
-     *
-     * @return void
-     */
     public function addProductRelatedData(ProductConcreteTransfer $productConcreteTransfer): void
     {
         $productAbstractTransfer = $this->getProductFacade()->findProductAbstractById(
@@ -117,12 +106,6 @@ class MerchantProductOfferSearchCommunicationTester extends Actor
         $this->addProductToCategoryMappings($categoryTransfer->getIdCategory(), $productIdsToAssign);
     }
 
-    /**
-     * @param \Generated\Shared\Transfer\MerchantTransfer $merchantTransfer
-     * @param \Generated\Shared\Transfer\ProductConcreteTransfer $productConcreteTransfer
-     *
-     * @return void
-     */
     public function assertProductPageAbstractSearch(MerchantTransfer $merchantTransfer, ProductConcreteTransfer $productConcreteTransfer): void
     {
         $productPageSearchEntity = $this->getProductAbstractPageSearchPropelQuery()
@@ -139,11 +122,6 @@ class MerchantProductOfferSearchCommunicationTester extends Actor
         }
     }
 
-    /**
-     * @param int $idProductAbstract
-     *
-     * @return void
-     */
     public function setDependencyWithExpectedCall(int $idProductAbstract): void
     {
         $eventFacadeMock = Stub::makeEmpty(MerchantProductOfferSearchToEventFacadeInterface::class);
@@ -208,9 +186,6 @@ class MerchantProductOfferSearchCommunicationTester extends Actor
         return [$productAbstractMerchantTransfer1, $productAbstractMerchantTransfer2];
     }
 
-    /**
-     * @return void
-     */
     protected function addRabbitMqDependency(): void
     {
         $this->setDependency(QueueDependencyProvider::QUEUE_ADAPTERS, function (Container $container) {
@@ -221,9 +196,6 @@ class MerchantProductOfferSearchCommunicationTester extends Actor
         });
     }
 
-    /**
-     * @return void
-     */
     protected function addProductPageSearchDependencies(): void
     {
         $this->setDependency(
@@ -248,9 +220,6 @@ class MerchantProductOfferSearchCommunicationTester extends Actor
         );
     }
 
-    /**
-     * @return void
-     */
     protected function mockSearchFacade(): void
     {
         $this->setDependency(ProductPageSearchDependencyProvider::FACADE_SEARCH, Stub::make(
@@ -263,9 +232,6 @@ class MerchantProductOfferSearchCommunicationTester extends Actor
         ));
     }
 
-    /**
-     * @return void
-     */
     protected function addStoreClientMock(): void
     {
         $this->setDependency(ClientStoreDependencyProvider::PLUGINS_STORE_EXPANDER, [
@@ -273,9 +239,6 @@ class MerchantProductOfferSearchCommunicationTester extends Actor
         ]);
     }
 
-    /**
-     * @return \Spryker\Client\StoreExtension\Dependency\Plugin\StoreExpanderPluginInterface
-     */
     protected function createStoreStorageStoreExpanderPluginMock(): StoreExpanderPluginInterface
     {
         $storeTransfer = (new StoreTransfer())
@@ -289,11 +252,6 @@ class MerchantProductOfferSearchCommunicationTester extends Actor
         return $storeStorageStoreExpanderPluginMock;
     }
 
-    /**
-     * @param \Generated\Shared\Transfer\ProductAbstractTransfer $productAbstractTransfer
-     *
-     * @return void
-     */
     protected function addStoreRelationToProductAbstracts(ProductAbstractTransfer $productAbstractTransfer): void
     {
         $storeIds = $this->getStoreIds();
@@ -303,9 +261,6 @@ class MerchantProductOfferSearchCommunicationTester extends Actor
         $this->getProductFacade()->saveProductAbstract($productAbstractTransfer);
     }
 
-    /**
-     * @return array
-     */
     protected function getStoreIds(): array
     {
         $storeIds = [];
@@ -317,12 +272,6 @@ class MerchantProductOfferSearchCommunicationTester extends Actor
         return $storeIds;
     }
 
-    /**
-     * @param int $idCategory
-     * @param array $productIdsToAssign
-     *
-     * @return void
-     */
     protected function addProductToCategoryMappings(int $idCategory, array $productIdsToAssign): void
     {
         $this->getLocator()

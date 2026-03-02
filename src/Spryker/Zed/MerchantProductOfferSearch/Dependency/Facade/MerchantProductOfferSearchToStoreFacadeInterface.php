@@ -11,10 +11,5 @@ use Generated\Shared\Transfer\StoreTransfer;
 
 interface MerchantProductOfferSearchToStoreFacadeInterface
 {
-    /**
-     * @param string $storeName
-     *
-     * @return \Generated\Shared\Transfer\StoreTransfer
-     */
     public function getStoreByName(string $storeName): StoreTransfer;
 }

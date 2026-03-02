@@ -34,9 +34,6 @@ class MerchantSearchEventListenerTest extends Unit
      */
     protected $tester;
 
-    /**
-     * @return void
-     */
     public function setUp(): void
     {
         parent::setUp();
@@ -44,9 +41,6 @@ class MerchantSearchEventListenerTest extends Unit
         $this->tester->addDependencies();
     }
 
-    /**
-     * @return void
-     */
     public function testMerchantSearchEventListenerStoresData(): void
     {
         // Arrange

@@ -22,11 +22,6 @@ class ProductEventTrigger implements ProductEventTriggerInterface
      */
     protected const CHUNK_SIZE = 1000;
 
-    /**
-     * @param \Spryker\Zed\MerchantProductOfferSearch\Dependency\Facade\MerchantProductOfferSearchToEventBehaviorFacadeInterface $eventBehaviorFacade
-     * @param \Spryker\Zed\MerchantProductOfferSearch\Persistence\MerchantProductOfferSearchRepositoryInterface $repository
-     * @param \Spryker\Zed\MerchantProductOfferSearch\Dependency\Facade\MerchantProductOfferSearchToEventFacadeInterface $eventFacade
-     */
     public function __construct(
         protected MerchantProductOfferSearchToEventBehaviorFacadeInterface $eventBehaviorFacade,
         protected MerchantProductOfferSearchRepositoryInterface $repository,

@@ -25,11 +25,6 @@ class MerchantProductOfferSearchToMerchantProductOfferFacadeBridge implements Me
         $this->merchantProductOfferFacade = $merchantProductOfferFacade;
     }
 
-    /**
-     * @param \Generated\Shared\Transfer\MerchantProductOfferCriteriaTransfer $merchantProductOfferCriteriaTransfer
-     *
-     * @return \Generated\Shared\Transfer\ProductOfferCollectionTransfer
-     */
     public function getProductOfferCollection(
         MerchantProductOfferCriteriaTransfer $merchantProductOfferCriteriaTransfer
     ): ProductOfferCollectionTransfer {

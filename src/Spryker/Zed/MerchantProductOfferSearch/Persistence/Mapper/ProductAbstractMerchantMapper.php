@@ -32,12 +32,6 @@ class ProductAbstractMerchantMapper implements ProductAbstractMerchantMapperInte
      */
     protected const KEY_MERCHANT_REFERENCES = 'references';
 
-    /**
-     * @param array $productAbstractMerchantData
-     * @param \Generated\Shared\Transfer\ProductAbstractMerchantTransfer $productAbstractMerchantTransfer
-     *
-     * @return \Generated\Shared\Transfer\ProductAbstractMerchantTransfer
-     */
     public function mapProductAbstractMerchantDataToProductAbstractMerchantTransfer(
         array $productAbstractMerchantData,
         ProductAbstractMerchantTransfer $productAbstractMerchantTransfer

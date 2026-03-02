@@ -34,9 +34,6 @@ class MerchantSearchPublisherTest extends Unit
      */
     protected MerchantProductOfferSearchCommunicationTester $tester;
 
-    /**
-     * @return void
-     */
     public function setUp(): void
     {
         parent::setUp();
@@ -44,9 +41,6 @@ class MerchantSearchPublisherTest extends Unit
         $this->tester->addDependencies();
     }
 
-    /**
-     * @return void
-     */
     public function testListenMerchantEventAndRepublishAbstractProducts(): void
     {
         // Arrange

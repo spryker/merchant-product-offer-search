@@ -20,25 +20,16 @@ use Spryker\Zed\MerchantProductOfferSearch\Persistence\Mapper\ProductAbstractMer
  */
 class MerchantProductOfferSearchPersistenceFactory extends AbstractPersistenceFactory
 {
-    /**
-     * @return \Spryker\Zed\MerchantProductOfferSearch\Persistence\Mapper\ProductAbstractMerchantMapperInterface
-     */
     public function createProductAbstractMerchantMapper(): ProductAbstractMerchantMapperInterface
     {
         return new ProductAbstractMerchantMapper();
     }
 
-    /**
-     * @return \Orm\Zed\ProductOffer\Persistence\SpyProductOfferQuery
-     */
     public function getProductOfferPropelQuery(): SpyProductOfferQuery
     {
         return $this->getProvidedDependency(MerchantProductOfferSearchDependencyProvider::PROPEL_QUERY_PRODUCT_OFFER);
     }
 
-    /**
-     * @return \Orm\Zed\Product\Persistence\SpyProductAbstractQuery
-     */
     public function getProductAbstractPropelQuery(): SpyProductAbstractQuery
     {
         return $this->getProvidedDependency(MerchantProductOfferSearchDependencyProvider::PROPEL_QUERY_PRODUCT_ABSTRACT);

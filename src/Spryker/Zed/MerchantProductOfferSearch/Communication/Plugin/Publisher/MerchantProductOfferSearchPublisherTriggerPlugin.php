@@ -82,12 +82,6 @@ class MerchantProductOfferSearchPublisherTriggerPlugin extends AbstractPlugin im
         return static::COL_ID_PRODUCT_OFFER;
     }
 
-    /**
-     * @param int $offset
-     * @param int $limit
-     *
-     * @return \Generated\Shared\Transfer\MerchantProductOfferCriteriaTransfer
-     */
     protected function createMerchantProductOfferCriteriaTransfer(int $offset, int $limit): MerchantProductOfferCriteriaTransfer
     {
         return (new MerchantProductOfferCriteriaTransfer())

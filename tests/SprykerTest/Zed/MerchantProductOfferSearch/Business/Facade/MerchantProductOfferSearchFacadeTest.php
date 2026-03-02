@@ -60,9 +60,6 @@ class MerchantProductOfferSearchFacadeTest extends Unit
      */
     protected $tester;
 
-    /**
-     * @return void
-     */
     public function testGetProductAbstractMerchantsByProductAbstractIds(): void
     {
         // Arrange
@@ -80,9 +77,6 @@ class MerchantProductOfferSearchFacadeTest extends Unit
         $this->assertEquals($productAbstractMerchantTransfers, $expectedResult);
     }
 
-    /**
-     * @return void
-     */
     public function testGetProductAbstractMerchantsByProductAbstractIdsReturnsEmptyCollectionWhenNoIdsArePassed(): void
     {
         // Arrange
@@ -97,9 +91,6 @@ class MerchantProductOfferSearchFacadeTest extends Unit
         $this->assertEmpty($productAbstractMerchantTransfers);
     }
 
-    /**
-     * @return void
-     */
     public function testGetProductAbstractMerchantsByProductAbstractIdsFindsActiveOffersOnly(): void
     {
         // Arrange
@@ -118,9 +109,6 @@ class MerchantProductOfferSearchFacadeTest extends Unit
         $this->assertEquals($productAbstractMerchantTransfers[0], $expectedResult[1]);
     }
 
-    /**
-     * @return void
-     */
     public function testGetProductAbstractMerchantsByProductAbstractIdsFindsOffersWithDifferentApprovalStatuses(): void
     {
         // Arrange
@@ -141,9 +129,6 @@ class MerchantProductOfferSearchFacadeTest extends Unit
         $this->assertEquals($productAbstractMerchantTransfers, $expectedResult);
     }
 
-    /**
-     * @return void
-     */
     public function testExpandProductConcretePageMapSuccess(): void
     {
         // Arrange
@@ -182,9 +167,6 @@ class MerchantProductOfferSearchFacadeTest extends Unit
         $this->assertContains($merchantTransfer->getMerchantReference(), $pageMapTransfer->getMerchantReferences());
     }
 
-    /**
-     * @return void
-     */
     public function testExpandProductConcretePageMapFailed(): void
     {
         // Arrange
@@ -224,9 +206,6 @@ class MerchantProductOfferSearchFacadeTest extends Unit
         $this->assertCount(0, $pageMapTransfer->getFullTextBoosted());
     }
 
-    /**
-     * @return void
-     */
     public function testGetProductAbstractMerchantCollectionReturnsCorrectDataByProductAbstractIds(): void
     {
         // Arrange
@@ -250,9 +229,6 @@ class MerchantProductOfferSearchFacadeTest extends Unit
         $this->assertEquals($productAbstractMerchantTransfers, $expectedResult);
     }
 
-    /**
-     * @return void
-     */
     public function testGetProductAbstractMerchantCollectionReturnsEmptyCollectionWhenNoIdsArePassed(): void
     {
         // Arrange
@@ -273,9 +249,6 @@ class MerchantProductOfferSearchFacadeTest extends Unit
         $this->assertEmpty($productAbstractMerchantTransfers);
     }
 
-    /**
-     * @return void
-     */
     public function testGetProductAbstractMerchantCollectionFilteredByOfferIsActive(): void
     {
         // Arrange
@@ -300,9 +273,6 @@ class MerchantProductOfferSearchFacadeTest extends Unit
         $this->assertEquals($productAbstractMerchantTransfers[0], $expectedResult[0]);
     }
 
-    /**
-     * @return void
-     */
     public function testGetProductAbstractMerchantCollectionFilteredByApprovalStatus(): void
     {
         // Arrange

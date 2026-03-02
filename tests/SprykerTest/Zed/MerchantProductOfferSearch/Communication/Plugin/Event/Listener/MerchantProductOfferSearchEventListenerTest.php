@@ -44,9 +44,6 @@ class MerchantProductOfferSearchEventListenerTest extends Unit
      */
     protected $tester;
 
-    /**
-     * @return void
-     */
     public function setUp(): void
     {
         parent::setUp();
@@ -54,9 +51,6 @@ class MerchantProductOfferSearchEventListenerTest extends Unit
         $this->tester->addDependencies();
     }
 
-    /**
-     * @return void
-     */
     public function testMerchantProductOfferSearchEventListenerStoresData(): void
     {
         // Arrange
