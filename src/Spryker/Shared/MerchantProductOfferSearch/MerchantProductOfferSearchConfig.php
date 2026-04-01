@@ -109,4 +109,14 @@ class MerchantProductOfferSearchConfig extends AbstractBundleConfig
      * @var string
      */
     public const PRODUCT_ABSTRACT_SEARCH_PUBLISH = 'Product.product_abstract_search.publish';
+
+    /**
+     * Specification:
+     * - Queue name used for merchant product offer search publish events.
+     *
+     * @api
+     *
+     * @var string
+     */
+    public const string PUBLISH_MERCHANT_PRODUCT_OFFER_QUEUE = 'publish.merchant_product_offer';
 }
