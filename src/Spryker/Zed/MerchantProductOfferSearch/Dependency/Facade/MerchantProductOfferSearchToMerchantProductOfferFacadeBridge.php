@@ -25,6 +25,12 @@ class MerchantProductOfferSearchToMerchantProductOfferFacadeBridge implements Me
         $this->merchantProductOfferFacade = $merchantProductOfferFacade;
     }
 
+    public function preloadProductOfferCollection(
+        MerchantProductOfferCriteriaTransfer $merchantProductOfferCriteriaTransfer
+    ): void {
+        $this->merchantProductOfferFacade->preloadProductOfferCollection($merchantProductOfferCriteriaTransfer);
+    }
+
     public function getProductOfferCollection(
         MerchantProductOfferCriteriaTransfer $merchantProductOfferCriteriaTransfer
     ): ProductOfferCollectionTransfer {

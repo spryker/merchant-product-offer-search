@@ -8,9 +8,11 @@
 namespace Spryker\Zed\MerchantProductOfferSearch\Business\Expander;
 
 use Generated\Shared\Transfer\LocaleTransfer;
+use Generated\Shared\Transfer\MerchantProductOfferConditionsTransfer;
 use Generated\Shared\Transfer\MerchantProductOfferCriteriaTransfer;
 use Generated\Shared\Transfer\PageMapTransfer;
 use Generated\Shared\Transfer\ProductConcretePageSearchTransfer;
+use Generated\Shared\Transfer\ProductConcreteTransfer;
 use Spryker\Zed\MerchantProductOfferSearch\Dependency\Facade\MerchantProductOfferSearchToMerchantProductOfferFacadeInterface;
 use Spryker\Zed\MerchantProductOfferSearch\Dependency\Facade\MerchantProductOfferSearchToStoreFacadeInterface;
 use Spryker\Zed\ProductPageSearchExtension\Dependency\PageMapBuilderInterface;
@@ -40,6 +42,36 @@ class MerchantProductOfferSearchExpander implements MerchantProductOfferSearchEx
     ) {
         $this->merchantProductOfferFacade = $merchantProductOfferFacade;
         $this->storeFacade = $storeFacade;
+    }
+
+    /**
+     * @param array<\Generated\Shared\Transfer\ProductConcreteTransfer> $productConcreteTransfers
+     */
+    public function preloadProductOffers(array $productConcreteTransfers): void
+    {
+        $skus = array_values(array_filter(array_map(
+            fn (ProductConcreteTransfer $transfer) => $transfer->getSku(),
+            $productConcreteTransfers,
+        )));
+
+        if ($skus === []) {
+            return;
+        }
+
+        $storeIds = $this->extractStoreIds($productConcreteTransfers);
+
+        if ($storeIds === []) {
+            return;
+        }
+
+        $criteria = (new MerchantProductOfferCriteriaTransfer())
+            ->setMerchantProductOfferConditions(
+                (new MerchantProductOfferConditionsTransfer())
+                    ->setSkus($skus)
+                    ->setStoreIds($storeIds),
+            );
+
+        $this->merchantProductOfferFacade->preloadProductOfferCollection($criteria);
     }
 
     /**
@@ -78,5 +110,29 @@ class MerchantProductOfferSearchExpander implements MerchantProductOfferSearchEx
         }
 
         return $pageMapTransfer;
+    }
+
+    /**
+     * @param array<\Generated\Shared\Transfer\ProductConcreteTransfer> $productConcreteTransfers
+     *
+     * @return array<int>
+     */
+    protected function extractStoreIds(array $productConcreteTransfers): array
+    {
+        $storeIds = [];
+
+        foreach ($productConcreteTransfers as $productConcreteTransfer) {
+            foreach ($productConcreteTransfer->getStores() as $storeTransfer) {
+                $idStore = $storeTransfer->getIdStore();
+
+                if ($idStore === null) {
+                    continue;
+                }
+
+                $storeIds[$idStore] = $idStore;
+            }
+        }
+
+        return array_values($storeIds);
     }
 }

@@ -12,6 +12,10 @@ use Generated\Shared\Transfer\ProductOfferCollectionTransfer;
 
 interface MerchantProductOfferSearchToMerchantProductOfferFacadeInterface
 {
+    public function preloadProductOfferCollection(
+        MerchantProductOfferCriteriaTransfer $merchantProductOfferCriteriaTransfer
+    ): void;
+
     public function getProductOfferCollection(
         MerchantProductOfferCriteriaTransfer $merchantProductOfferCriteriaTransfer
     ): ProductOfferCollectionTransfer;

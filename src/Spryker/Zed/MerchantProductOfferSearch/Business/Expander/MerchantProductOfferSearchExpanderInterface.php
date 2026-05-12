@@ -14,6 +14,11 @@ use Spryker\Zed\ProductPageSearchExtension\Dependency\PageMapBuilderInterface;
 interface MerchantProductOfferSearchExpanderInterface
 {
     /**
+     * @param array<\Generated\Shared\Transfer\ProductConcreteTransfer> $productConcreteTransfers
+     */
+    public function preloadProductOffers(array $productConcreteTransfers): void;
+
+    /**
      * @param \Generated\Shared\Transfer\PageMapTransfer $pageMapTransfer
      * @param \Spryker\Zed\ProductPageSearchExtension\Dependency\PageMapBuilderInterface $pageMapBuilder
      * @param array<string, mixed> $productData

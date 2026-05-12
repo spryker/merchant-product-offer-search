@@ -101,4 +101,10 @@
     <transfer name="EventEntity">
     </transfer>
 
+    <transfer name="MerchantProductOfferConditions" strict="true">
+    </transfer>
+
+    <transfer name="ProductConcrete">
+    </transfer>
+
 </transfers>

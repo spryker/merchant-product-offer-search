@@ -12,14 +12,35 @@ use Generated\Shared\Transfer\PageMapTransfer;
 use Spryker\Zed\Kernel\Communication\AbstractPlugin;
 use Spryker\Zed\ProductPageSearchExtension\Dependency\PageMapBuilderInterface;
 use Spryker\Zed\ProductPageSearchExtension\Dependency\Plugin\ProductConcretePageMapExpanderPluginInterface;
+use Spryker\Zed\ProductPageSearchExtension\Dependency\Plugin\ProductConcretePageMapExpanderPreLoaderPluginInterface;
 
 /**
  * @method \Spryker\Zed\MerchantProductOfferSearch\MerchantProductOfferSearchConfig getConfig()
  * @method \Spryker\Zed\MerchantProductOfferSearch\Business\MerchantProductOfferSearchFacadeInterface getFacade()
  * @method \Spryker\Zed\MerchantProductOfferSearch\Communication\MerchantProductOfferSearchCommunicationFactory getFactory()
+ * @method \Spryker\Zed\MerchantProductOfferSearch\Business\MerchantProductOfferSearchBusinessFactory getBusinessFactory()()
  */
-class MerchantProductOfferProductConcretePageMapExpanderPlugin extends AbstractPlugin implements ProductConcretePageMapExpanderPluginInterface
+class MerchantProductOfferProductConcretePageMapExpanderPlugin extends AbstractPlugin implements ProductConcretePageMapExpanderPluginInterface, ProductConcretePageMapExpanderPreLoaderPluginInterface
 {
+    /**
+     * {@inheritDoc}
+     * - Extracts SKUs from the provided product concrete transfers.
+     * - Batch-loads all merchant product offers for those SKUs across all stores mentioned in transfers.
+     * - Warms the internal cache before the per-product expand loop begins.
+     *
+     * @api
+     *
+     * @param array<\Generated\Shared\Transfer\ProductConcreteTransfer> $productConcreteTransfers
+     *
+     * @return void
+     */
+    public function preload(array $productConcreteTransfers): void
+    {
+        $this->getBusinessFactory()
+            ->createMerchantProductOfferSearchExpander()
+            ->preloadProductOffers($productConcreteTransfers);
+    }
+
     /**
      * {@inheritDoc}
      * - Expands the provided `PageMap.fullTextBoosted` transfer property with merchant names and references from related product offers.
