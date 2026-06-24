@@ -12,6 +12,8 @@ use Spryker\Shared\Kernel\AbstractBundleConfig;
 class MerchantProductOfferSearchConfig extends AbstractBundleConfig
 {
     /**
+     * @api
+     *
      * @var string
      */
     public const PLUGIN_PRODUCT_MERCHANT_DATA = 'PLUGIN_PRODUCT_MERCHANT_DATA';
