@@ -99,12 +99,17 @@
     </transfer>
 
     <transfer name="EventEntity">
+        <property name="id" type="int"/>
+        <property name="modifiedColumns" type="array" singular="modifiedColumns"/>
+        <property name="additionalValues" type="array" singular="additionalValue"/>
     </transfer>
 
     <transfer name="MerchantProductOfferConditions" strict="true">
     </transfer>
 
     <transfer name="ProductConcrete">
+        <property name="idProductConcrete" type="int"/>
+        <property name="fkProductAbstract" type="int"/>
     </transfer>
 
 </transfers>

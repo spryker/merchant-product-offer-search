@@ -121,4 +121,38 @@ class MerchantProductOfferSearchConfig extends AbstractBundleConfig
      * @var string
      */
     public const string PUBLISH_MERCHANT_PRODUCT_OFFER_QUEUE = 'publish.merchant_product_offer';
+
+    /**
+     * Specification:
+     * - This event is used to publish the concrete and the abstract product search pages of the products that have active product offers of one merchant in one product offer ID range.
+     * - The additional values hold the merchant reference and the first and the last product offer ID of the range, both inclusive.
+     * - The event has no ID, so the event queue consumer does not merge the range events of one merchant.
+     *
+     * @api
+     */
+    public const string MERCHANT_PRODUCT_OFFER_RANGE_PUBLISH = 'MerchantProductOfferSearch.merchant_product_offer_range.publish';
+
+    /**
+     * Specification:
+     * - Additional value key of a range event: the merchant reference of the product offers.
+     *
+     * @api
+     */
+    public const string RANGE_MERCHANT_REFERENCE = 'merchant_reference';
+
+    /**
+     * Specification:
+     * - Additional value key of a range event: the first product offer ID of the range, inclusive.
+     *
+     * @api
+     */
+    public const string RANGE_FROM_ID_PRODUCT_OFFER = 'from_id_product_offer';
+
+    /**
+     * Specification:
+     * - Additional value key of a range event: the last product offer ID of the range, inclusive.
+     *
+     * @api
+     */
+    public const string RANGE_TO_ID_PRODUCT_OFFER = 'to_id_product_offer';
 }

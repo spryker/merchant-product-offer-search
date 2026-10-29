@@ -12,8 +12,12 @@ use Spryker\Zed\MerchantProductOfferSearch\Business\Event\ProductEventTrigger;
 use Spryker\Zed\MerchantProductOfferSearch\Business\Event\ProductEventTriggerInterface;
 use Spryker\Zed\MerchantProductOfferSearch\Business\Expander\MerchantProductOfferSearchExpander;
 use Spryker\Zed\MerchantProductOfferSearch\Business\Expander\MerchantProductOfferSearchExpanderInterface;
+use Spryker\Zed\MerchantProductOfferSearch\Business\Publisher\MerchantSearchPublisher;
+use Spryker\Zed\MerchantProductOfferSearch\Business\Publisher\MerchantSearchPublisherInterface;
 use Spryker\Zed\MerchantProductOfferSearch\Business\Reader\MerchantProductOfferSearchReader;
 use Spryker\Zed\MerchantProductOfferSearch\Business\Reader\MerchantProductOfferSearchReaderInterface;
+use Spryker\Zed\MerchantProductOfferSearch\Business\Writer\MerchantProductOfferRangeSearchWriter;
+use Spryker\Zed\MerchantProductOfferSearch\Business\Writer\MerchantProductOfferRangeSearchWriterInterface;
 use Spryker\Zed\MerchantProductOfferSearch\Business\Writer\MerchantProductOfferSearchWriter;
 use Spryker\Zed\MerchantProductOfferSearch\Business\Writer\MerchantProductOfferSearchWriterInterface;
 use Spryker\Zed\MerchantProductOfferSearch\Dependency\Facade\MerchantProductOfferSearchToEventBehaviorFacadeInterface;
@@ -43,6 +47,7 @@ class MerchantProductOfferSearchBusinessFactory extends AbstractBusinessFactory
         return new MerchantProductOfferSearchExpander(
             $this->getMerchantProductOfferFacade(),
             $this->getStoreFacade(),
+            $this->getRepository(),
         );
     }
 
@@ -51,6 +56,24 @@ class MerchantProductOfferSearchBusinessFactory extends AbstractBusinessFactory
         return new ProductEventTrigger(
             $this->getEventBehaviorFacade(),
             $this->getRepository(),
+            $this->getEventFacade(),
+            $this->getConfig(),
+        );
+    }
+
+    public function createMerchantSearchPublisher(): MerchantSearchPublisherInterface
+    {
+        return new MerchantSearchPublisher(
+            $this->createProductEventTrigger(),
+            $this->createMerchantProductOfferRangeSearchWriter(),
+        );
+    }
+
+    public function createMerchantProductOfferRangeSearchWriter(): MerchantProductOfferRangeSearchWriterInterface
+    {
+        return new MerchantProductOfferRangeSearchWriter(
+            $this->getRepository(),
+            $this->getProductPageSearchFacade(),
             $this->getEventFacade(),
         );
     }

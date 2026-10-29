@@ -15,6 +15,7 @@ use Generated\Shared\Transfer\ProductConcretePageSearchTransfer;
 use Generated\Shared\Transfer\ProductConcreteTransfer;
 use Spryker\Zed\MerchantProductOfferSearch\Dependency\Facade\MerchantProductOfferSearchToMerchantProductOfferFacadeInterface;
 use Spryker\Zed\MerchantProductOfferSearch\Dependency\Facade\MerchantProductOfferSearchToStoreFacadeInterface;
+use Spryker\Zed\MerchantProductOfferSearch\Persistence\MerchantProductOfferSearchRepositoryInterface;
 use Spryker\Zed\ProductPageSearchExtension\Dependency\PageMapBuilderInterface;
 
 class MerchantProductOfferSearchExpander implements MerchantProductOfferSearchExpanderInterface
@@ -38,7 +39,8 @@ class MerchantProductOfferSearchExpander implements MerchantProductOfferSearchEx
 
     public function __construct(
         MerchantProductOfferSearchToMerchantProductOfferFacadeInterface $merchantProductOfferFacade,
-        MerchantProductOfferSearchToStoreFacadeInterface $storeFacade
+        MerchantProductOfferSearchToStoreFacadeInterface $storeFacade,
+        protected MerchantProductOfferSearchRepositoryInterface $merchantProductOfferSearchRepository
     ) {
         $this->merchantProductOfferFacade = $merchantProductOfferFacade;
         $this->storeFacade = $storeFacade;
@@ -58,6 +60,8 @@ class MerchantProductOfferSearchExpander implements MerchantProductOfferSearchEx
             return;
         }
 
+        $this->merchantProductOfferSearchRepository->preloadMerchantStatesByProductConcreteSkus($skus);
+
         $storeIds = $this->extractStoreIds($productConcreteTransfers);
 
         if ($storeIds === []) {
@@ -75,12 +79,7 @@ class MerchantProductOfferSearchExpander implements MerchantProductOfferSearchEx
     }
 
     /**
-     * @param \Generated\Shared\Transfer\PageMapTransfer $pageMapTransfer
-     * @param \Spryker\Zed\ProductPageSearchExtension\Dependency\PageMapBuilderInterface $pageMapBuilder
      * @param array<string, mixed> $productData
-     * @param \Generated\Shared\Transfer\LocaleTransfer $localeTransfer
-     *
-     * @return \Generated\Shared\Transfer\PageMapTransfer
      */
     public function expandProductConcretePageMap(
         PageMapTransfer $pageMapTransfer,
@@ -100,12 +99,21 @@ class MerchantProductOfferSearchExpander implements MerchantProductOfferSearchEx
         $productOfferCollectionTransfer = $this->merchantProductOfferFacade
             ->getProductOfferCollection($merchantProductOfferCriteriaTransfer);
 
+        $merchantReferences = [];
         foreach ($productOfferCollectionTransfer->getProductOffers() as $productOfferTransfer) {
             if (!$productOfferTransfer->getIsActive() || $productOfferTransfer->getApprovalStatus() !== static::STATUS_APPROVED) {
                 continue;
             }
 
-            $merchantReference = $productOfferTransfer->getMerchantReferenceOrFail();
+            $merchantReferences[] = $productOfferTransfer->getMerchantReferenceOrFail();
+        }
+
+        $activeMerchantReferences = $this->merchantProductOfferSearchRepository->getActiveMerchantReferences($merchantReferences);
+        foreach ($merchantReferences as $merchantReference) {
+            if (!in_array($merchantReference, $activeMerchantReferences, true)) {
+                continue;
+            }
+
             $pageMapTransfer->addMerchantReference($merchantReference);
         }
 

@@ -11,13 +11,18 @@ namespace SprykerTest\Zed\MerchantProductOfferSearch\Communication\Plugin\Produc
 
 use ArrayObject;
 use Codeception\Test\Unit;
+use Generated\Shared\Transfer\LocaleTransfer;
 use Generated\Shared\Transfer\MerchantTransfer;
+use Generated\Shared\Transfer\PageMapTransfer;
+use Generated\Shared\Transfer\ProductConcretePageSearchTransfer;
 use Generated\Shared\Transfer\ProductConcreteTransfer;
 use Generated\Shared\Transfer\ProductOfferTransfer;
 use Generated\Shared\Transfer\StoreTransfer;
 use ReflectionClass;
 use Spryker\Zed\MerchantProductOffer\Business\MerchantProductOfferReader\MerchantProductOfferReader;
 use Spryker\Zed\MerchantProductOfferSearch\Communication\Plugin\ProductPageSearch\MerchantProductOfferProductConcretePageMapExpanderPlugin;
+use Spryker\Zed\MerchantProductOfferSearch\Persistence\MerchantProductOfferSearchRepository;
+use Spryker\Zed\ProductPageSearch\Business\DataMapper\PageMapBuilder;
 use SprykerTest\Zed\MerchantProductOfferSearch\MerchantProductOfferSearchCommunicationTester;
 
 /**
@@ -53,6 +58,7 @@ class MerchantProductOfferProductConcretePageMapExpanderPluginPreloadTest extend
         parent::setUp();
 
         $this->clearReaderCache();
+        $this->clearMerchantStateCache();
     }
 
     /**
@@ -304,6 +310,78 @@ class MerchantProductOfferProductConcretePageMapExpanderPluginPreloadTest extend
             fn ($offer) => $offer->getProductOfferReference(),
             $productOfferTransfers,
         )));
+    }
+
+    public function testGivenPreloadedProductsWhenExpandingPageMapsThenOnlyActiveMerchantsAreAdded(): void
+    {
+        // Arrange
+        $storeTransfer = $this->tester->haveStore([StoreTransfer::NAME => static::DEFAULT_STORE]);
+        $firstMerchantTransfer = $this->tester->haveMerchant([MerchantTransfer::IS_ACTIVE => true]);
+        $secondMerchantTransfer = $this->tester->haveMerchant([MerchantTransfer::IS_ACTIVE => true]);
+        $inactiveMerchantTransfer = $this->tester->haveMerchant([MerchantTransfer::IS_ACTIVE => false]);
+        $productConcreteTransfers = [];
+        foreach ([$firstMerchantTransfer, $secondMerchantTransfer, $inactiveMerchantTransfer, $firstMerchantTransfer] as $merchantTransfer) {
+            $productConcreteTransfer = $this->tester->haveProduct([ProductConcreteTransfer::IS_ACTIVE => true]);
+            $productConcreteTransfer->addStores($storeTransfer);
+            $this->tester->haveProductOffer([
+                ProductOfferTransfer::CONCRETE_SKU => $productConcreteTransfer->getSku(),
+                ProductOfferTransfer::MERCHANT_REFERENCE => $merchantTransfer->getMerchantReference(),
+                ProductOfferTransfer::IS_ACTIVE => true,
+                ProductOfferTransfer::APPROVAL_STATUS => static::PRODUCT_OFFER_APPROVAL_STATUS_APPROVED,
+                ProductOfferTransfer::STORES => new ArrayObject([$storeTransfer]),
+            ]);
+            $productConcreteTransfers[] = $productConcreteTransfer;
+        }
+        $plugin = new MerchantProductOfferProductConcretePageMapExpanderPlugin();
+        $merchantReferencesBySku = [];
+
+        // Act
+        $plugin->preload($productConcreteTransfers);
+        foreach ($productConcreteTransfers as $productConcreteTransfer) {
+            $pageMapTransfer = $plugin->expand(new PageMapTransfer(), new PageMapBuilder(), [
+                ProductConcretePageSearchTransfer::SKU => $productConcreteTransfer->getSkuOrFail(),
+                ProductConcretePageSearchTransfer::STORE => $storeTransfer->getNameOrFail(),
+            ], new LocaleTransfer());
+            $merchantReferencesBySku[] = $pageMapTransfer->getMerchantReferences();
+        }
+
+        // Assert
+        $this->assertSame([
+            [$firstMerchantTransfer->getMerchantReferenceOrFail()],
+            [$secondMerchantTransfer->getMerchantReferenceOrFail()],
+            [],
+            [$firstMerchantTransfer->getMerchantReferenceOrFail()],
+        ], $merchantReferencesBySku);
+    }
+
+    public function testGivenMerchantOutsideThePreloadedBatchWhenExpandingPageMapThenActiveMerchantIsAdded(): void
+    {
+        // Arrange
+        $storeTransfer = $this->tester->haveStore([StoreTransfer::NAME => static::DEFAULT_STORE]);
+        $merchantTransfer = $this->tester->haveMerchant([MerchantTransfer::IS_ACTIVE => true]);
+        $productConcreteTransfer = $this->tester->haveProduct([ProductConcreteTransfer::IS_ACTIVE => true]);
+        $this->tester->haveProductOffer([
+            ProductOfferTransfer::CONCRETE_SKU => $productConcreteTransfer->getSku(),
+            ProductOfferTransfer::MERCHANT_REFERENCE => $merchantTransfer->getMerchantReference(),
+            ProductOfferTransfer::IS_ACTIVE => true,
+            ProductOfferTransfer::APPROVAL_STATUS => static::PRODUCT_OFFER_APPROVAL_STATUS_APPROVED,
+            ProductOfferTransfer::STORES => new ArrayObject([$storeTransfer]),
+        ]);
+
+        // Act
+        $pageMapTransfer = (new MerchantProductOfferProductConcretePageMapExpanderPlugin())->expand(new PageMapTransfer(), new PageMapBuilder(), [
+            ProductConcretePageSearchTransfer::SKU => $productConcreteTransfer->getSkuOrFail(),
+            ProductConcretePageSearchTransfer::STORE => $storeTransfer->getNameOrFail(),
+        ], new LocaleTransfer());
+
+        // Assert
+        $this->assertSame([$merchantTransfer->getMerchantReferenceOrFail()], $pageMapTransfer->getMerchantReferences());
+    }
+
+    protected function clearMerchantStateCache(): void
+    {
+        $reflection = new ReflectionClass(MerchantProductOfferSearchRepository::class);
+        $reflection->getProperty('isActiveByMerchantReference')->setValue(null, []);
     }
 
     /**

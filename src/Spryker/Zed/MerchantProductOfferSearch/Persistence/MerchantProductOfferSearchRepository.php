@@ -11,6 +11,7 @@ use Generated\Shared\Transfer\ProductAbstractMerchantCollectionTransfer;
 use Generated\Shared\Transfer\ProductAbstractMerchantConditionsTransfer;
 use Generated\Shared\Transfer\ProductAbstractMerchantCriteriaTransfer;
 use Generated\Shared\Transfer\ProductAbstractMerchantTransfer;
+use Generated\Shared\Transfer\ProductConcreteTransfer;
 use Orm\Zed\Merchant\Persistence\Map\SpyMerchantStoreTableMap;
 use Orm\Zed\Merchant\Persistence\Map\SpyMerchantTableMap;
 use Orm\Zed\Product\Persistence\Map\SpyProductAbstractTableMap;
@@ -19,7 +20,9 @@ use Orm\Zed\ProductOffer\Persistence\Map\SpyProductOfferTableMap;
 use Orm\Zed\ProductOffer\Persistence\SpyProductOfferQuery;
 use Orm\Zed\Store\Persistence\Map\SpyStoreTableMap;
 use Propel\Runtime\ActiveQuery\Criteria;
+use Propel\Runtime\ActiveQuery\Criterion\AbstractCriterion;
 use Spryker\Zed\Kernel\Persistence\AbstractRepository;
+use Spryker\Zed\PropelOrm\Business\Model\Formatter\OptimizedSimpleArrayFormatter;
 
 /**
  * @method \Spryker\Zed\MerchantProductOfferSearch\Persistence\MerchantProductOfferSearchPersistenceFactory getFactory()
@@ -30,6 +33,17 @@ class MerchantProductOfferSearchRepository extends AbstractRepository implements
      * @var string
      */
     protected const KEY_ABSTRACT_PRODUCT_ID = 'id';
+
+    protected const string KEY_PRODUCT_ID = 'product_id';
+
+    protected const string KEY_MERCHANT_IS_ACTIVE = 'merchant_is_active';
+
+    /**
+     * Static, because the business factory creates a new repository for each page map expansion; the preload of a batch fills the cache that the expansion of each product reads.
+     *
+     * @var array<string, bool>
+     */
+    protected static array $isActiveByMerchantReference = [];
 
     /**
      * @var string
@@ -60,10 +74,6 @@ class MerchantProductOfferSearchRepository extends AbstractRepository implements
      * @module Store
      * @module Merchant
      * @module ProductOffer
-     *
-     * @param \Generated\Shared\Transfer\ProductAbstractMerchantCriteriaTransfer $productAbstractMerchantCriteriaTransfer
-     *
-     * @return \Generated\Shared\Transfer\ProductAbstractMerchantCollectionTransfer
      */
     public function getProductAbstractMerchantCollection(
         ProductAbstractMerchantCriteriaTransfer $productAbstractMerchantCriteriaTransfer
@@ -178,6 +188,152 @@ class MerchantProductOfferSearchRepository extends AbstractRepository implements
             ->getData();
     }
 
+    /**
+     * @return iterable<list<int>>
+     */
+    public function iterateProductOfferIdsByMerchantReference(string $merchantReference, int $batchSize): iterable
+    {
+        $lastIdProductOffer = 0;
+
+        do {
+            /** @var list<int> $productOfferIds */
+            $productOfferIds = $this->getFactory()
+                ->getProductOfferPropelQuery()
+                ->filterByMerchantReference($merchantReference)
+                ->filterByIdProductOffer($lastIdProductOffer, Criteria::GREATER_THAN)
+                ->filterByIsActive(true)
+                ->select([SpyProductOfferTableMap::COL_ID_PRODUCT_OFFER])
+                ->orderByIdProductOffer()
+                ->setLimit($batchSize)
+                ->find()
+                ->getData();
+
+            if (!$productOfferIds) {
+                break;
+            }
+
+            $productOfferIds = array_map('intval', $productOfferIds);
+            $lastIdProductOffer = end($productOfferIds);
+
+            yield $productOfferIds;
+        } while (count($productOfferIds) === $batchSize);
+    }
+
+    /**
+     * @module Product
+     *
+     * @param list<array{int, int}> $productOfferIdRanges
+     *
+     * @return list<\Generated\Shared\Transfer\ProductConcreteTransfer>
+     */
+    public function getProductConcretesByMerchantReferenceAndProductOfferIdRanges(string $merchantReference, array $productOfferIdRanges): array
+    {
+        if (!$productOfferIdRanges) {
+            return [];
+        }
+
+        $productOfferQuery = $this->getFactory()
+            ->getProductOfferPropelQuery()
+            ->addJoin(SpyProductOfferTableMap::COL_CONCRETE_SKU, SpyProductTableMap::COL_SKU, Criteria::INNER_JOIN)
+            ->filterByMerchantReference($merchantReference);
+
+        /** @var array<array<string, mixed>> $productRows */
+        $productRows = $productOfferQuery
+            ->addAnd($this->createProductOfferIdRangesCriterion($productOfferQuery, $productOfferIdRanges))
+            ->filterByIsActive(true)
+            ->withColumn(SpyProductTableMap::COL_ID_PRODUCT, static::KEY_PRODUCT_ID)
+            ->withColumn(SpyProductTableMap::COL_FK_PRODUCT_ABSTRACT, static::KEY_ABSTRACT_PRODUCT_ID)
+            ->select([static::KEY_PRODUCT_ID, static::KEY_ABSTRACT_PRODUCT_ID])
+            ->setFormatter(new OptimizedSimpleArrayFormatter())
+            ->find()
+            ->getData();
+
+        $productConcreteTransfers = [];
+        foreach ($productRows as $productRow) {
+            $productConcreteTransfers[] = (new ProductConcreteTransfer())
+                ->setIdProductConcrete((int)$productRow[static::KEY_PRODUCT_ID])
+                ->setFkProductAbstract((int)$productRow[static::KEY_ABSTRACT_PRODUCT_ID]);
+        }
+
+        return $productConcreteTransfers;
+    }
+
+    /**
+     * @param array<string> $productConcreteSkus
+     */
+    public function preloadMerchantStatesByProductConcreteSkus(array $productConcreteSkus): void
+    {
+        static::$isActiveByMerchantReference = [];
+
+        if (!$productConcreteSkus) {
+            return;
+        }
+
+        $productOfferPropelQuery = $this->getFactory()->getProductOfferPropelQuery();
+        $productOfferPropelQuery
+            ->addJoin(SpyProductOfferTableMap::COL_MERCHANT_REFERENCE, SpyMerchantTableMap::COL_MERCHANT_REFERENCE, Criteria::INNER_JOIN)
+            ->addAnd($productOfferPropelQuery->getNewCriterion(SpyProductOfferTableMap::COL_CONCRETE_SKU, array_values(array_unique($productConcreteSkus)), Criteria::IN));
+
+        $this->addMerchantStatesToCache($productOfferPropelQuery);
+    }
+
+    /**
+     * @param array<string> $merchantReferences
+     *
+     * @return array<string>
+     */
+    public function getActiveMerchantReferences(array $merchantReferences): array
+    {
+        $merchantReferences = array_values(array_unique($merchantReferences));
+        $unknownMerchantReferences = array_values(array_filter(
+            $merchantReferences,
+            fn (string $merchantReference): bool => !array_key_exists($merchantReference, static::$isActiveByMerchantReference),
+        ));
+
+        if ($unknownMerchantReferences) {
+            $this->addUnknownMerchantStatesToCache($unknownMerchantReferences);
+        }
+
+        return array_values(array_filter(
+            $merchantReferences,
+            fn (string $merchantReference): bool => static::$isActiveByMerchantReference[$merchantReference],
+        ));
+    }
+
+    /**
+     * @param array<string> $merchantReferences
+     */
+    protected function addUnknownMerchantStatesToCache(array $merchantReferences): void
+    {
+        foreach ($merchantReferences as $merchantReference) {
+            static::$isActiveByMerchantReference[$merchantReference] = false;
+        }
+
+        $productOfferPropelQuery = $this->getFactory()->getProductOfferPropelQuery();
+        $productOfferPropelQuery
+            ->addJoin(SpyProductOfferTableMap::COL_MERCHANT_REFERENCE, SpyMerchantTableMap::COL_MERCHANT_REFERENCE, Criteria::INNER_JOIN)
+            ->addAnd($productOfferPropelQuery->getNewCriterion(SpyMerchantTableMap::COL_MERCHANT_REFERENCE, $merchantReferences, Criteria::IN));
+
+        $this->addMerchantStatesToCache($productOfferPropelQuery);
+    }
+
+    protected function addMerchantStatesToCache(SpyProductOfferQuery $productOfferPropelQuery): void
+    {
+        /** @var array<array<string, mixed>> $merchantStateRows */
+        $merchantStateRows = $productOfferPropelQuery
+            ->withColumn(SpyMerchantTableMap::COL_MERCHANT_REFERENCE, static::KEY_MERCHANT_REFERENCE)
+            ->withColumn(SpyMerchantTableMap::COL_IS_ACTIVE, static::KEY_MERCHANT_IS_ACTIVE)
+            ->select([static::KEY_MERCHANT_REFERENCE, static::KEY_MERCHANT_IS_ACTIVE])
+            ->distinct()
+            ->setFormatter(new OptimizedSimpleArrayFormatter())
+            ->find()
+            ->getData();
+
+        foreach ($merchantStateRows as $merchantStateRow) {
+            static::$isActiveByMerchantReference[$merchantStateRow[static::KEY_MERCHANT_REFERENCE]] = (bool)$merchantStateRow[static::KEY_MERCHANT_IS_ACTIVE];
+        }
+    }
+
     protected function groupMerchantDataByProductAbstractId(array $merchantData): array
     {
         $groupedProductAbstractMerchantData = [];
@@ -209,5 +365,52 @@ class MerchantProductOfferSearchRepository extends AbstractRepository implements
         }
 
         return $productOfferQuery;
+    }
+
+    /**
+     * @param list<array{int, int}> $productOfferIdRanges
+     */
+    protected function createProductOfferIdRangesCriterion(SpyProductOfferQuery $productOfferQuery, array $productOfferIdRanges): AbstractCriterion
+    {
+        [$fromIdProductOffer, $toIdProductOffer] = $productOfferIdRanges[0];
+        $productOfferIdRangesCriterion = $this->createProductOfferIdRangeCriterion($productOfferQuery, $fromIdProductOffer, $toIdProductOffer);
+
+        foreach (array_slice($productOfferIdRanges, 1) as [$fromIdProductOffer, $toIdProductOffer]) {
+            $productOfferIdRangesCriterion->addOr($this->createProductOfferIdRangeCriterion($productOfferQuery, $fromIdProductOffer, $toIdProductOffer));
+        }
+
+        return $productOfferIdRangesCriterion;
+    }
+
+    protected function createProductOfferIdRangeCriterion(
+        SpyProductOfferQuery $productOfferQuery,
+        int $fromIdProductOffer,
+        int $toIdProductOffer
+    ): AbstractCriterion {
+        return $productOfferQuery
+            ->getNewCriterion(SpyProductOfferTableMap::COL_ID_PRODUCT_OFFER, $fromIdProductOffer, Criteria::GREATER_EQUAL)
+            ->addAnd($productOfferQuery->getNewCriterion(SpyProductOfferTableMap::COL_ID_PRODUCT_OFFER, $toIdProductOffer, Criteria::LESS_EQUAL));
+    }
+
+    /**
+     * @param array<int> $merchantIds
+     *
+     * @return list<string>
+     */
+    public function getMerchantReferencesByMerchantIds(array $merchantIds): array
+    {
+        if (!$merchantIds) {
+            return [];
+        }
+
+        /** @var list<string> $merchantReferences */
+        $merchantReferences = $this->getFactory()
+            ->getMerchantPropelQuery()
+            ->filterByIdMerchant_In($merchantIds)
+            ->select([SpyMerchantTableMap::COL_MERCHANT_REFERENCE])
+            ->find()
+            ->getData();
+
+        return $merchantReferences;
     }
 }

@@ -95,6 +95,7 @@ interface MerchantProductOfferSearchFacadeInterface
      * Specification:
      * - Expands the provided `PageMap.fullTextBoosted` transfer property with merchant names and references from related product offers.
      * - Expands the provided `PageMap` transfer object with related merchant references.
+     * - Uses only product offers of merchants that are active.
      *
      * @api
      *
