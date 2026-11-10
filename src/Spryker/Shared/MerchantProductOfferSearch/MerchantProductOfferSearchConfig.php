@@ -7,9 +7,9 @@
 
 namespace Spryker\Shared\MerchantProductOfferSearch;
 
-use Spryker\Shared\Kernel\AbstractBundleConfig;
+use Spryker\Shared\Kernel\AbstractSharedConfig;
 
-class MerchantProductOfferSearchConfig extends AbstractBundleConfig
+class MerchantProductOfferSearchConfig extends AbstractSharedConfig
 {
     /**
      * @api
