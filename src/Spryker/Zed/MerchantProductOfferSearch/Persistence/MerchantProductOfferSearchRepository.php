@@ -216,7 +216,9 @@ class MerchantProductOfferSearchRepository extends AbstractRepository implements
             $lastIdProductOffer = end($productOfferIds);
 
             yield $productOfferIds;
-        } while (count($productOfferIds) === $batchSize);
+
+            $hasNextBatch = count($productOfferIds) === $batchSize;
+        } while ($hasNextBatch);
     }
 
     /**
